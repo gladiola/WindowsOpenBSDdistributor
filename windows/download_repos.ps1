@@ -98,7 +98,7 @@ function Get-UsbRoot {
     param([string]$Letter)
 
     $root = "$($Letter.ToUpper()):"
-    if (-not (Test-Path $root)) {
+    if (-not (Test-Path "$root\")) {
         throw "Drive $root was not found. Make sure the USB drive is plugged in and the letter is correct."
     }
     return $root
