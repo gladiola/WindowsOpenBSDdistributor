@@ -126,7 +126,7 @@ function Get-AllRepos {
 
     do {
         if ($useAuthEndpoint) {
-            $url = "https://api.github.com/user/repos?visibility=all&affiliation=owner&per_page=100&page=$page"
+            $url = "https://api.github.com/user/repos?visibility=all&affiliation=owner,organization_member&per_page=100&page=$page"
         }
         else {
             $url = "https://api.github.com/users/$User/repos?per_page=100&page=$page"
