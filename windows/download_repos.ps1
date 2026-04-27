@@ -146,9 +146,11 @@ function Get-AllRepos {
 
 function Invoke-Git {
     # Run a git command, capture combined stdout+stderr, and throw on failure.
-    # This avoids piping 2>&1 through the PowerShell pipeline, which can turn
-    # normal git stderr progress lines into terminating errors when
-    # $ErrorActionPreference = 'Stop'.
+    # $ErrorActionPreference is set to 'Continue' locally so that git's normal
+    # informational stderr lines (e.g. "Cloning into '...'") are not converted
+    # into terminating errors by PowerShell's 2>&1 redirect.  Real failures are
+    # still detected by checking $LASTEXITCODE.
+    $local:ErrorActionPreference = 'Continue'
     $out = & git @args 2>&1
     Write-Verbose ($out | Out-String)
     if ($LASTEXITCODE -ne 0) { throw ($out | Out-String).Trim() }
