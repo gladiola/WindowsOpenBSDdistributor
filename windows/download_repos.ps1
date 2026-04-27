@@ -137,7 +137,7 @@ function Get-AllRepos {
         if ($useAuthEndpoint) {
             $response = @($response | Where-Object { $_.owner.login -eq $User })
         }
-        $repos += $response
+        foreach ($item in $response) { $repos += $item }
         $page++
     } while ($rawCount -eq 100)
 
