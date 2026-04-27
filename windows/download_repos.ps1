@@ -1,34 +1,45 @@
 <#
 .SYNOPSIS
-    Downloads today's gladiola GitHub repositories to a USB drive.
+    Downloads all public gladiola GitHub repositories to a USB drive.
 
 .DESCRIPTION
-    Clones (or updates) each of the gladiola repositories that were created
-    on 2026-04-27 into a folder called "gladiola_repos" on the specified
-    USB drive.  The resulting directory layout on the USB drive is:
+    Queries the GitHub API to discover every public repository owned by
+    'gladiola', then clones (or updates) each one into a folder called
+    "gladiola_repos" on the specified USB drive.  The resulting directory
+    layout on the USB drive is:
 
         <DriveLetter>:\gladiola_repos\
-            OBJC-codespaces\
-            OBJC-slowlorisdetector\
-            OBJC-allowlisting\
-            OBJC-HomemadeBlockProgram\
-            OpenBSDHomemadeBlockScripts\
+            <repo1>\
+            <repo2>\
+            ...
 
     Git must be installed and available on PATH.  The clones are done over
-    HTTPS so no SSH key is required.
+    HTTPS so no SSH key is required.  No GitHub token is needed to list
+    public repositories, but supplying one via -Token raises the API rate
+    limit from 60 to 5,000 requests per hour.
 
 .PARAMETER DriveLetter
     The drive letter of the USB drive (without colon), e.g. "E".
 
+.PARAMETER Token
+    Optional GitHub personal access token.  Increases the API rate limit
+    and allows access to private repositories you own.
+
 .EXAMPLE
     .\download_repos.ps1 -DriveLetter E
+
+.EXAMPLE
+    .\download_repos.ps1 -DriveLetter E -Token ghp_yourTokenHere
 #>
 
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true, HelpMessage = 'USB drive letter (e.g. E)')]
     [ValidatePattern('^[A-Za-z]$')]
-    [string]$DriveLetter
+    [string]$DriveLetter,
+
+    [Parameter(Mandatory = $false, HelpMessage = 'GitHub personal access token (optional)')]
+    [string]$Token = ''
 )
 
 Set-StrictMode -Version Latest
@@ -38,14 +49,7 @@ $ErrorActionPreference = 'Stop'
 # Configuration
 # ---------------------------------------------------------------------------
 
-$GithubOrg   = 'gladiola'
-$RepoNames   = @(
-    'OBJC-codespaces',
-    'OBJC-slowlorisdetector',
-    'OBJC-allowlisting',
-    'OBJC-HomemadeBlockProgram',
-    'OpenBSDHomemadeBlockScripts'
-)
+$GithubUser = 'gladiola'
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -66,6 +70,30 @@ function Get-UsbRoot {
         throw "Drive $root was not found. Make sure the USB drive is plugged in and the letter is correct."
     }
     return $root
+}
+
+function Get-AllRepos {
+    param(
+        [string]$User,
+        [string]$AuthToken
+    )
+
+    $headers = @{ 'User-Agent' = 'WindowsOpenBSDdistributor' }
+    if ($AuthToken -ne '') {
+        $headers['Authorization'] = "Bearer $AuthToken"
+    }
+
+    $repos = @()
+    $page  = 1
+
+    do {
+        $url      = "https://api.github.com/users/$User/repos?per_page=100&page=$page"
+        $response = Invoke-RestMethod -Uri $url -Headers $headers
+        $repos   += $response
+        $page++
+    } while ($response.Count -eq 100)
+
+    return $repos
 }
 
 function Clone-Or-Update {
@@ -106,16 +134,25 @@ if (-not (Test-Path $targetDir)) {
     Write-Host "Created $targetDir" -ForegroundColor Green
 }
 
-Write-Host "`nDownloading $($RepoNames.Count) repositories to $targetDir`n"
+Write-Host "`nFetching repository list for '$GithubUser' from GitHub API ..." -ForegroundColor Cyan
+$repos = Get-AllRepos -User $GithubUser -AuthToken $Token
+
+if ($repos.Count -eq 0) {
+    Write-Warning "No public repositories found for '$GithubUser'. Nothing to download."
+    exit 0
+}
+
+Write-Host "Found $($repos.Count) repositories. Downloading to $targetDir`n"
 
 $failed = @()
 
-foreach ($name in $RepoNames) {
-    $url      = "https://github.com/$GithubOrg/$name.git"
+foreach ($repo in $repos) {
+    $name     = $repo.name
+    $cloneUrl = $repo.clone_url
     $destPath = Join-Path $targetDir $name
 
     try {
-        Clone-Or-Update -Url $url -DestPath $destPath -RepoName $name
+        Clone-Or-Update -Url $cloneUrl -DestPath $destPath -RepoName $name
         Write-Host "  OK        $name" -ForegroundColor Green
     }
     catch {
@@ -132,6 +169,6 @@ if ($failed.Count -gt 0) {
     exit 1
 }
 else {
-    Write-Host "All repositories downloaded successfully to $targetDir" -ForegroundColor Green
+    Write-Host "All $($repos.Count) repositories downloaded successfully to $targetDir" -ForegroundColor Green
     Write-Host "You can now safely eject the USB drive and take it to your OpenBSD machine.`n"
 }

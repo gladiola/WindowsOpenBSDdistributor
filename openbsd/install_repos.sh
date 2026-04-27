@@ -14,15 +14,13 @@
 # DESCRIPTION
 #   The script expects the USB drive to contain a directory called
 #   "gladiola_repos" at its root (as created by windows/download_repos.ps1).
-#   It copies each repository to <install_dir> and, where applicable,
-#   sets executable bits on shell scripts and attempts a "make install".
+#   It installs every sub-directory found inside gladiola_repos/, so whatever
+#   repos were downloaded on Windows will all be installed automatically.
 #
-#   Repositories handled:
-#     OBJC-codespaces            – Objective-C / Codespaces setup files
-#     OBJC-slowlorisdetector     – Slowloris detector (Objective-C)
-#     OBJC-allowlisting          – HTTP allow-listing helper (Objective-C)
-#     OBJC-HomemadeBlockProgram  – IP block program (Objective-C)
-#     OpenBSDHomemadeBlockScripts – Shell-based block scripts for OpenBSD/pf
+#   For each repository the script:
+#     1. Copies it to <install_dir>/
+#     2. Sets chmod 755 on all *.sh files
+#     3. Runs "make install" if a Makefile is present
 #
 # REQUIREMENTS
 #   * Run as root (needed to write to /usr/local and to configure pf scripts).
@@ -95,16 +93,19 @@ if [ ! -d "$INSTALL_DIR" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Repository list
+# Discover repositories from the USB drive
 # ---------------------------------------------------------------------------
 
-REPOS="
-OBJC-codespaces
-OBJC-slowlorisdetector
-OBJC-allowlisting
-OBJC-HomemadeBlockProgram
-OpenBSDHomemadeBlockScripts
-"
+REPO_COUNT=0
+for d in "$REPOS_DIR"/*/; do
+    [ -d "$d" ] && REPO_COUNT=$((REPO_COUNT + 1))
+done
+
+if [ "$REPO_COUNT" -eq 0 ]; then
+    die "No repositories found in '$REPOS_DIR'. Make sure download_repos.ps1 ran successfully."
+fi
+
+info "Found $REPO_COUNT repositories in $REPOS_DIR"
 
 # ---------------------------------------------------------------------------
 # Copy and configure each repository
@@ -112,15 +113,11 @@ OpenBSDHomemadeBlockScripts
 
 FAILED=""
 
-for REPO in $REPOS; do
-    SRC="$REPOS_DIR/$REPO"
-    DEST="$INSTALL_DIR/$REPO"
+for SRC in "$REPOS_DIR"/*/; do
+    [ -d "$SRC" ] || continue
 
-    if [ ! -d "$SRC" ]; then
-        warn "Repository '$REPO' not found on USB drive – skipping."
-        FAILED="$FAILED $REPO"
-        continue
-    fi
+    REPO=$(basename "$SRC")
+    DEST="$INSTALL_DIR/$REPO"
 
     info "Installing $REPO -> $DEST"
 
@@ -130,7 +127,7 @@ for REPO in $REPOS; do
     # Make sure shell scripts are executable
     find "$DEST" -name '*.sh' -exec chmod 755 {} \;
 
-    # If a Makefile with an install target is present, run it
+    # If a Makefile is present, run make install
     if [ -f "$DEST/Makefile" ]; then
         info "  Running 'make install' in $DEST"
         make_log=$(make -C "$DEST" install 2>&1)
@@ -145,19 +142,6 @@ for REPO in $REPOS; do
 
     ok "$REPO installed."
 done
-
-# ---------------------------------------------------------------------------
-# Post-install note for OpenBSDHomemadeBlockScripts
-# ---------------------------------------------------------------------------
-
-BLOCK_DEST="$INSTALL_DIR/OpenBSDHomemadeBlockScripts"
-if [ -d "$BLOCK_DEST" ]; then
-    printf '\n'
-    info "OpenBSDHomemadeBlockScripts post-install note:"
-    info "  Shell scripts are in: $BLOCK_DEST"
-    info "  Review each script and update the interface/log paths to match"
-    info "  your system before adding them to cron or rc.local."
-fi
 
 # ---------------------------------------------------------------------------
 # Summary
