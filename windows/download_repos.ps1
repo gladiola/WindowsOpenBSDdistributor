@@ -165,6 +165,9 @@ function Clone-Or-Update {
 
     if (Test-Path (Join-Path $DestPath '.git')) {
         Write-Host "  Updating  $RepoName ..." -ForegroundColor Cyan
+        # Drives that do not record ownership (e.g. FAT/exFAT USB drives) cause
+        # git to refuse to operate unless the directory is marked as safe.
+        Invoke-Git config --global --add safe.directory $DestPath
         Push-Location $DestPath
         try {
             Invoke-Git fetch --all --prune
