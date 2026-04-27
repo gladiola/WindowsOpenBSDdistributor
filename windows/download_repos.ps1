@@ -120,7 +120,7 @@ function Get-AllRepos {
 
     do {
         $url      = "https://api.github.com/users/$User/repos?per_page=100&page=$page"
-        $response = Invoke-RestMethod -Uri $url -Headers $headers
+        $response = @(Invoke-RestMethod -Uri $url -Headers $headers)
         $repos   += $response
         $page++
     } while ($response.Count -eq 100)
@@ -167,7 +167,7 @@ if (-not (Test-Path $targetDir)) {
 }
 
 Write-Host "`nFetching repository list for '$GithubUser' from GitHub API ..." -ForegroundColor Cyan
-$allRepos = Get-AllRepos -User $GithubUser -AuthToken $Token
+$allRepos = @(Get-AllRepos -User $GithubUser -AuthToken $Token)
 
 if ($allRepos.Count -eq 0) {
     Write-Warning "No public repositories found for '$GithubUser'. Nothing to download."
@@ -182,7 +182,7 @@ Write-Host "Found $($allRepos.Count) repositories." -ForegroundColor Cyan
 
 if ($PSCmdlet.ParameterSetName -eq 'Named') {
     # Filter to the names the caller specified
-    $selectedRepos = $allRepos | Where-Object { $Repos -contains $_.name }
+    $selectedRepos = @($allRepos | Where-Object { $Repos -contains $_.name })
     $notFound = $Repos | Where-Object { $allRepos.name -notcontains $_ }
     if ($notFound) {
         Write-Warning "The following requested repositories were not found: $($notFound -join ', ')"
@@ -198,9 +198,9 @@ elseif ($PSCmdlet.ParameterSetName -eq 'All') {
 else {
     # Interactive: show a GUI picker
     Write-Host 'Opening selection window – hold Ctrl/Shift to pick multiple repos, then click OK.' -ForegroundColor Yellow
-    $selectedRepos = $allRepos |
+    $selectedRepos = @($allRepos |
         Select-Object name, description, language, @{N='pushed_at';E={$_.pushed_at}} |
-        Out-GridView -Title "Select repositories to download to $($DriveLetter.ToUpper()):\gladiola_repos\" -PassThru
+        Out-GridView -Title "Select repositories to download to $($DriveLetter.ToUpper()):\gladiola_repos\" -PassThru)
 
     if (-not $selectedRepos -or $selectedRepos.Count -eq 0) {
         Write-Warning 'No repositories selected. Nothing to download.'
@@ -209,7 +209,7 @@ else {
 
     # Re-resolve full repo objects so we still have clone_url
     $selectedNames = $selectedRepos | ForEach-Object { $_.name }
-    $selectedRepos = $allRepos | Where-Object { $selectedNames -contains $_.name }
+    $selectedRepos = @($allRepos | Where-Object { $selectedNames -contains $_.name })
 }
 
 Write-Host "`nDownloading $($selectedRepos.Count) repositories to $targetDir`n"
