@@ -144,6 +144,16 @@ function Get-AllRepos {
     return $repos
 }
 
+function Invoke-Git {
+    # Run a git command, capture combined stdout+stderr, and throw on failure.
+    # This avoids piping 2>&1 through the PowerShell pipeline, which can turn
+    # normal git stderr progress lines into terminating errors when
+    # $ErrorActionPreference = 'Stop'.
+    $out = & git @args 2>&1
+    Write-Verbose ($out | Out-String)
+    if ($LASTEXITCODE -ne 0) { throw ($out | Out-String).Trim() }
+}
+
 function Clone-Or-Update {
     param(
         [string]$Url,
@@ -155,8 +165,8 @@ function Clone-Or-Update {
         Write-Host "  Updating  $RepoName ..." -ForegroundColor Cyan
         Push-Location $DestPath
         try {
-            git fetch --all --prune 2>&1 | Write-Verbose
-            git reset --hard origin/HEAD 2>&1 | Write-Verbose
+            Invoke-Git fetch --all --prune
+            Invoke-Git reset --hard origin/HEAD
         }
         finally {
             Pop-Location
@@ -164,7 +174,7 @@ function Clone-Or-Update {
     }
     else {
         Write-Host "  Cloning   $RepoName ..." -ForegroundColor Cyan
-        git clone --progress $Url $DestPath 2>&1 | ForEach-Object { Write-Verbose $_ }
+        Invoke-Git clone --progress $Url $DestPath
     }
 }
 
@@ -212,13 +222,22 @@ elseif ($PSCmdlet.ParameterSetName -eq 'All') {
     $selectedRepos = $allRepos
 }
 else {
-    # Interactive: show a GUI picker with repo details
+    # Interactive: show a GUI picker with repo details.
+    # Only name and description are shown in the grid so that the long clone URL
+    # does not obscure the columns.  Selected names are matched back to the full
+    # repo objects afterwards so that clone_url is still available.
     Write-Host 'Opening selection window – hold Ctrl/Shift to pick multiple repos, then click OK.' -ForegroundColor Yellow
-    $selectedRepos = @($allRepos |
-        Select-Object -Property name, description, clone_url |
-        Out-GridView -Title "Select repositories to download to $($DriveLetter.ToUpper()):\gladiola_repos\" -PassThru)
+    $pickedNames = @(
+        $allRepos |
+            Select-Object -Property name, description |
+            Out-GridView -Title "Select repositories to download to $($DriveLetter.ToUpper()):\gladiola_repos\" -PassThru |
+            Where-Object { $_ -ne $null } |
+            ForEach-Object { $_.name }
+    )
 
-    if (-not $selectedRepos -or $selectedRepos.Count -eq 0) {
+    $selectedRepos = @($allRepos | Where-Object { $pickedNames -contains $_.name })
+
+    if ($selectedRepos.Count -eq 0) {
         Write-Warning 'No repositories selected. Nothing to download.'
         exit 0
     }
