@@ -3,17 +3,8 @@
 Download gladiola repos to a USB drive on Windows, then install them on an
 OpenBSD machine – even when the OpenBSD system has no direct internet access.
 
----
-
-## Repositories covered
-
-| Repository | Description |
-|---|---|
-| [OBJC-codespaces](https://github.com/gladiola/OBJC-codespaces) | Codespaces setup for Objective-C |
-| [OBJC-slowlorisdetector](https://github.com/gladiola/OBJC-slowlorisdetector) | Slowloris attack detector |
-| [OBJC-allowlisting](https://github.com/gladiola/OBJC-allowlisting) | HTTP variable allow-listing helper |
-| [OBJC-HomemadeBlockProgram](https://github.com/gladiola/OBJC-HomemadeBlockProgram) | IP block program |
-| [OpenBSDHomemadeBlockScripts](https://github.com/gladiola/OpenBSDHomemadeBlockScripts) | pf-based block scripts for OpenBSD |
+Both scripts support **interactive selection** so you can pick exactly which
+repos to download or install each time.
 
 ---
 
@@ -29,14 +20,22 @@ OpenBSD machine – even when the OpenBSD system has no direct internet access.
 ```powershell
 # Allow running local scripts (one-time, run as Administrator if needed)
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-
-# Download all repos to E:\gladiola_repos\
-.\windows\download_repos.ps1 -DriveLetter E
 ```
 
-The script creates `E:\gladiola_repos\` and clones every repository into it.
-If a repository was already cloned previously the script fetches and resets to
-the latest `HEAD` instead.
+| Mode | Command |
+|---|---|
+| **Interactive** – GUI picker window | `.\windows\download_repos.ps1 -DriveLetter E` |
+| **Specific repos** – no GUI | `.\windows\download_repos.ps1 -DriveLetter E -Repos "OBJC-codespaces","OpenBSDHomemadeBlockScripts"` |
+| **All repos** – no GUI | `.\windows\download_repos.ps1 -DriveLetter E -All` |
+| With a GitHub token (raises rate limit) | add `-Token ghp_yourToken` to any command above |
+
+**Interactive mode** fetches all public gladiola repos from the GitHub API and
+opens an `Out-GridView` window.  Hold **Ctrl** or **Shift** to select multiple
+repos, then click **OK**.
+
+The script clones each chosen repo into `<DriveLetter>:\gladiola_repos\`.
+If a repo was already cloned previously it fetches and resets to the latest
+`HEAD` instead.
 
 Safely eject the USB drive when the script reports success.
 
@@ -61,22 +60,21 @@ doas mount -t msdos /dev/sd1i /mnt/usb
 
 ### Run the install script
 
-```sh
-# Install with default paths (/mnt/usb source, /usr/local/gladiola destination)
-doas sh openbsd/install_repos.sh
+| Mode | Command |
+|---|---|
+| **Interactive** – numbered menu | `doas sh openbsd/install_repos.sh` |
+| **Specific repos** – no menu | `doas sh openbsd/install_repos.sh -r OBJC-codespaces,OpenBSDHomemadeBlockScripts` |
+| **All repos** – no menu | `doas sh openbsd/install_repos.sh -a` |
+| Custom source / destination | add `-s /mnt/usbkey -d /home/myuser/gladiola` |
 
-# Or specify custom paths
-doas sh openbsd/install_repos.sh -s /mnt/usbkey -d /home/myuser/gladiola
-```
+**Interactive mode** lists every repo found in `gladiola_repos/` on the USB
+drive with a number, then prompts you to enter the numbers you want (e.g.
+`1 3 5`).  Press **Enter** with no input to install everything.
 
-The script:
-
-1. Copies every repository from `<usb_mount>/gladiola_repos/` to
-   `<install_dir>/`.
-2. Sets executable bits on all `.sh` files.
-3. Runs `make install` inside any repository that contains a `Makefile`.
-4. Prints post-install notes for `OpenBSDHomemadeBlockScripts` (reminding you
-   to edit paths before adding scripts to `cron` or `rc.local`).
+For each selected repository the script:
+1. Copies it to `<install_dir>/` (default `/usr/local/gladiola`)
+2. Sets `chmod 755` on all `.sh` files
+3. Runs `make install` if a `Makefile` is present (output shown only on failure)
 
 ### Unmount the USB drive when done
 

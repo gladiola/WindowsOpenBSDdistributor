@@ -1,42 +1,74 @@
 <#
 .SYNOPSIS
-    Downloads all public gladiola GitHub repositories to a USB drive.
+    Downloads selected gladiola GitHub repositories to a USB drive.
 
 .DESCRIPTION
     Queries the GitHub API to discover every public repository owned by
-    'gladiola', then clones (or updates) each one into a folder called
-    "gladiola_repos" on the specified USB drive.  The resulting directory
-    layout on the USB drive is:
+    'gladiola', then lets you choose which ones to download.
+
+    Selection modes (in order of precedence):
+      1. -Repos "repo1","repo2"  – non-interactive, download named repos only
+      2. Interactive picker      – an Out-GridView window listing all repos;
+                                   hold Ctrl/Shift to multi-select, then click OK
+      3. -All                    – skip selection and download every repo
+
+    The chosen repos are cloned (or updated if already present) into a folder
+    called "gladiola_repos" on the specified USB drive:
 
         <DriveLetter>:\gladiola_repos\
             <repo1>\
             <repo2>\
             ...
 
-    Git must be installed and available on PATH.  The clones are done over
-    HTTPS so no SSH key is required.  No GitHub token is needed to list
-    public repositories, but supplying one via -Token raises the API rate
-    limit from 60 to 5,000 requests per hour.
+    Git must be installed and available on PATH.  Clones are done over HTTPS
+    so no SSH key is required.  No GitHub token is needed to list public
+    repositories, but supplying one via -Token raises the API rate limit from
+    60 to 5,000 requests per hour.
 
 .PARAMETER DriveLetter
     The drive letter of the USB drive (without colon), e.g. "E".
+
+.PARAMETER Repos
+    One or more repository names to download without opening the picker.
+    Example: -Repos "OBJC-codespaces","OpenBSDHomemadeBlockScripts"
+
+.PARAMETER All
+    Download every repository without opening the picker.
 
 .PARAMETER Token
     Optional GitHub personal access token.  Increases the API rate limit
     and allows access to private repositories you own.
 
 .EXAMPLE
+    # Interactive picker – choose repos from a GUI list
     .\download_repos.ps1 -DriveLetter E
 
 .EXAMPLE
+    # Download specific repos non-interactively
+    .\download_repos.ps1 -DriveLetter E -Repos "OBJC-codespaces","OpenBSDHomemadeBlockScripts"
+
+.EXAMPLE
+    # Download everything
+    .\download_repos.ps1 -DriveLetter E -All
+
+.EXAMPLE
+    # With a GitHub token to raise the rate limit
     .\download_repos.ps1 -DriveLetter E -Token ghp_yourTokenHere
 #>
 
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = 'Interactive')]
 param (
     [Parameter(Mandatory = $true, HelpMessage = 'USB drive letter (e.g. E)')]
     [ValidatePattern('^[A-Za-z]$')]
     [string]$DriveLetter,
+
+    [Parameter(ParameterSetName = 'Named', Mandatory = $true,
+               HelpMessage = 'Names of specific repositories to download')]
+    [string[]]$Repos,
+
+    [Parameter(ParameterSetName = 'All', Mandatory = $true,
+               HelpMessage = 'Download all repositories without prompting')]
+    [switch]$All,
 
     [Parameter(Mandatory = $false, HelpMessage = 'GitHub personal access token (optional)')]
     [string]$Token = ''
@@ -135,18 +167,56 @@ if (-not (Test-Path $targetDir)) {
 }
 
 Write-Host "`nFetching repository list for '$GithubUser' from GitHub API ..." -ForegroundColor Cyan
-$repos = Get-AllRepos -User $GithubUser -AuthToken $Token
+$allRepos = Get-AllRepos -User $GithubUser -AuthToken $Token
 
-if ($repos.Count -eq 0) {
+if ($allRepos.Count -eq 0) {
     Write-Warning "No public repositories found for '$GithubUser'. Nothing to download."
     exit 0
 }
 
-Write-Host "Found $($repos.Count) repositories. Downloading to $targetDir`n"
+Write-Host "Found $($allRepos.Count) repositories." -ForegroundColor Cyan
+
+# ---------------------------------------------------------------------------
+# Selection
+# ---------------------------------------------------------------------------
+
+if ($PSCmdlet.ParameterSetName -eq 'Named') {
+    # Filter to the names the caller specified
+    $selectedRepos = $allRepos | Where-Object { $Repos -contains $_.name }
+    $notFound = $Repos | Where-Object { $allRepos.name -notcontains $_ }
+    if ($notFound) {
+        Write-Warning "The following requested repositories were not found: $($notFound -join ', ')"
+    }
+    if ($selectedRepos.Count -eq 0) {
+        Write-Warning 'None of the specified repository names matched. Nothing to download.'
+        exit 0
+    }
+}
+elseif ($PSCmdlet.ParameterSetName -eq 'All') {
+    $selectedRepos = $allRepos
+}
+else {
+    # Interactive: show a GUI picker
+    Write-Host 'Opening selection window – hold Ctrl/Shift to pick multiple repos, then click OK.' -ForegroundColor Yellow
+    $selectedRepos = $allRepos |
+        Select-Object name, description, language, @{N='pushed_at';E={$_.pushed_at}} |
+        Out-GridView -Title "Select repositories to download to $($DriveLetter.ToUpper()):\gladiola_repos\" -PassThru
+
+    if (-not $selectedRepos -or $selectedRepos.Count -eq 0) {
+        Write-Warning 'No repositories selected. Nothing to download.'
+        exit 0
+    }
+
+    # Re-resolve full repo objects so we still have clone_url
+    $selectedNames = $selectedRepos | ForEach-Object { $_.name }
+    $selectedRepos = $allRepos | Where-Object { $selectedNames -contains $_.name }
+}
+
+Write-Host "`nDownloading $($selectedRepos.Count) repositories to $targetDir`n"
 
 $failed = @()
 
-foreach ($repo in $repos) {
+foreach ($repo in $selectedRepos) {
     $name     = $repo.name
     $cloneUrl = $repo.clone_url
     $destPath = Join-Path $targetDir $name
@@ -169,6 +239,6 @@ if ($failed.Count -gt 0) {
     exit 1
 }
 else {
-    Write-Host "All $($repos.Count) repositories downloaded successfully to $targetDir" -ForegroundColor Green
+    Write-Host "All $($selectedRepos.Count) repositories downloaded successfully to $targetDir" -ForegroundColor Green
     Write-Host "You can now safely eject the USB drive and take it to your OpenBSD machine.`n"
 }
