@@ -196,17 +196,16 @@ elseif ($PSCmdlet.ParameterSetName -eq 'All') {
     $selectedRepos = $allRepos
 }
 else {
-    # Interactive: show a GUI picker (names only)
+    # Interactive: show a GUI picker with repo details
     Write-Host 'Opening selection window – hold Ctrl/Shift to pick multiple repos, then click OK.' -ForegroundColor Yellow
-    $selectedNames = @(($allRepos | ForEach-Object { $_.name }) |
+    $selectedRepos = @($allRepos |
+        Select-Object -Property name, description, clone_url |
         Out-GridView -Title "Select repositories to download to $($DriveLetter.ToUpper()):\gladiola_repos\" -PassThru)
 
-    if (-not $selectedNames -or $selectedNames.Count -eq 0) {
+    if (-not $selectedRepos -or $selectedRepos.Count -eq 0) {
         Write-Warning 'No repositories selected. Nothing to download.'
         exit 0
     }
-
-    $selectedRepos = @($allRepos | Where-Object { $selectedNames -contains $_.name })
 }
 
 Write-Host "`nDownloading $($selectedRepos.Count) repositories to $targetDir`n"
