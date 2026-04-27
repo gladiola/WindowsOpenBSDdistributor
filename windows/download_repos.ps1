@@ -183,7 +183,7 @@ Write-Host "Found $($allRepos.Count) repositories." -ForegroundColor Cyan
 if ($PSCmdlet.ParameterSetName -eq 'Named') {
     # Filter to the names the caller specified
     $selectedRepos = @($allRepos | Where-Object { $Repos -contains $_.name })
-    $notFound = $Repos | Where-Object { $allRepos.name -notcontains $_ }
+    $notFound = $Repos | Where-Object { ($allRepos | ForEach-Object { $_.name }) -notcontains $_ }
     if ($notFound) {
         Write-Warning "The following requested repositories were not found: $($notFound -join ', ')"
     }
@@ -198,7 +198,7 @@ elseif ($PSCmdlet.ParameterSetName -eq 'All') {
 else {
     # Interactive: show a GUI picker (names only)
     Write-Host 'Opening selection window – hold Ctrl/Shift to pick multiple repos, then click OK.' -ForegroundColor Yellow
-    $selectedNames = @($allRepos.name |
+    $selectedNames = @(($allRepos | ForEach-Object { $_.name }) |
         Out-GridView -Title "Select repositories to download to $($DriveLetter.ToUpper()):\gladiola_repos\" -PassThru)
 
     if (-not $selectedNames -or $selectedNames.Count -eq 0) {
