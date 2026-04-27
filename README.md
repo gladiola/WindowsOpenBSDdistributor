@@ -30,8 +30,8 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 | With a GitHub token (raises rate limit) | add `-Token ghp_yourToken` to any command above |
 
 **Interactive mode** fetches all public gladiola repos from the GitHub API and
-opens an `Out-GridView` window.  Hold **Ctrl** or **Shift** to select multiple
-repos, then click **OK**.
+opens an `Out-GridView` window listing repo names.  Hold **Ctrl** or **Shift**
+to select multiple repos, then click **OK**.
 
 The script clones each chosen repo into `<DriveLetter>:\gladiola_repos\`.
 If a repo was already cloned previously it fetches and resets to the latest
