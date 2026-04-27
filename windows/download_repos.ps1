@@ -23,7 +23,8 @@
     Git must be installed and available on PATH.  Clones are done over HTTPS
     so no SSH key is required.  No GitHub token is needed to list public
     repositories, but supplying one via -Token raises the API rate limit from
-    60 to 5,000 requests per hour.
+    60 to 5,000 requests per hour and also enables downloading private
+    repositories that belong to the token owner.
 
 .PARAMETER DriveLetter
     The drive letter of the USB drive (without colon), e.g. "E".
@@ -37,7 +38,7 @@
 
 .PARAMETER Token
     Optional GitHub personal access token.  Increases the API rate limit
-    and allows access to private repositories you own.
+    and allows access to private repositories owned by the token holder.
 
 .EXAMPLE
     # Interactive picker – choose repos from a GUI list
@@ -118,12 +119,27 @@ function Get-AllRepos {
     $repos = @()
     $page  = 1
 
+    # When a token is supplied use the authenticated endpoint so that private
+    # repositories owned by the token holder are included in the results.
+    # The public /users/{user}/repos endpoint only returns public repos.
+    $useAuthEndpoint = $AuthToken -ne ''
+
     do {
-        $url      = "https://api.github.com/users/$User/repos?per_page=100&page=$page"
+        if ($useAuthEndpoint) {
+            $url = "https://api.github.com/user/repos?visibility=all&affiliation=owner&per_page=100&page=$page"
+        }
+        else {
+            $url = "https://api.github.com/users/$User/repos?per_page=100&page=$page"
+        }
         $response = @(Invoke-RestMethod -Uri $url -Headers $headers)
-        $repos   += $response
+        $rawCount = $response.Count
+        # When using the authenticated endpoint, keep only repos owned by $User
+        if ($useAuthEndpoint) {
+            $response = @($response | Where-Object { $_.owner.login -eq $User })
+        }
+        $repos += $response
         $page++
-    } while ($response.Count -eq 100)
+    } while ($rawCount -eq 100)
 
     return $repos
 }
