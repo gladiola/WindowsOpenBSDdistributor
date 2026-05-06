@@ -27,7 +27,7 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 | **Repositories uma** – e leai se GUI | `.\windows\download_repos.ps1 -DriveLetter E -All` |
 | Faatasi ma le GitHub token (fa'ateleina le tapula'a) | fa'aopoopo `-Token ghp_yourToken` i soʻo se poloaiga o loʻo i luga |
 
-**Auala fegalegaleai** maua repositories uma lautele a gladiola mai le GitHub API ma tatala se fa'amalama `Out-GridView` o loʻo lisi ai igoa o repositories.누눠 **Ctrl** po'o **Shift** e filifili repositories e tele, ona kiliki lea **OK**.
+**Auala fegalegaleai** maua repositories uma lautele a gladiola mai le GitHub API ma tatala se fa'amalama `Out-GridView` o loʻo lisi ai igoa o repositories. Taofi **Ctrl** po'o **Shift** e filifili repositories e tele, ona kiliki lea **OK**.
 
 O le initiga clone ia repositories filifilia i totonu o `<LeteaDrive>:\gladiola_repos\`. Afai o se repository ua uma ona clone muamua, ona maua ma toe fa'afo'i i le `HEAD` fou.
 
