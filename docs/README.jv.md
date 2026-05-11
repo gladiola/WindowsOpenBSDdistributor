@@ -25,13 +25,13 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 | **Repositori tartamtu** | `.\windows\download_repos.ps1 -DriveLetter E -Repos "OBJC-codespaces","OpenBSDHomemadeBlockScripts"` |
 | **Kabeh repositori** | `.\windows\download_repos.ps1 -DriveLetter E -All` |
 
-| With a GitHub token (raises rate limit) | add `-Token ghp_yourToken` to any command above |
+| Kanthi token GitHub (wates rate luwih dhuwur) | tambahna `-Token ghp_yourToken` ing salah siji printah ing ndhuwur |
 
-**Interactive mode** fetches all public gladiola repos from the GitHub API and opens an `Out-GridView` window listing repo names. Hold **Ctrl** or **Shift** to select multiple repos, then click **OK**.
+**Mode interaktif** njupuk kabeh repo gladiola publik saka GitHub API lan mbukak jendhela `Out-GridView` sing nampilake jeneng repo. Tahan **Ctrl** utawa **Shift** kanggo milih akeh repo, banjur klik **OK**.
 
-The script clones each chosen repo into `<DriveLetter>:\\gladiola_repos\\`. If a repo was already cloned previously it fetches and resets to the latest `HEAD` instead.
+Skrip bakal nge-clone saben repo sing dipilih menyang `<DriveLetter>:\\gladiola_repos\\`. Yen repo wis tau di-clone sadurunge, skrip bakal fetch lan reset menyang `HEAD` paling anyar.
 
-Safely eject the USB drive when the script reports success.
+Copot USB drive kanthi aman nalika skrip nglaporake sukses.
 
 ---
 
@@ -45,10 +45,10 @@ Safely eject the USB drive when the script reports success.
 ### Mount USB
 
 ```sh
-# Find the device name (look for the USB drive, often sd1 or sd2)
+# Goleki jeneng piranti (goleki USB drive, biasane sd1 utawa sd2)
 sysctl hw.disknames
 
-# Mount it (replace sd1i with your actual partition)
+# Mount piranti (ganti sd1i nganggo partisi nyata sampeyan)
 doas mount -t msdos /dev/sd1i /mnt/usb
 ```
 
@@ -61,12 +61,12 @@ doas mount -t msdos /dev/sd1i /mnt/usb
 | **All repos** – no menu | `doas sh openbsd/install_repos.sh -a` |
 | Custom source / destination | add `-s /mnt/usbkey -d /home/myuser/gladiola` |
 
-**Interactive mode** lists every repo found in `gladiola_repos/` on the USB drive with a number, then prompts you to enter the numbers you want (e.g. `1 3 5`). Press **Enter** with no input to install everything.
+**Mode interaktif** ndhaptar saben repo sing ditemokake ing `gladiola_repos/` ing USB nganggo nomer, banjur njaluk sampeyan ngetik nomer sing dikarepake (umpamane `1 3 5`). Pencet **Enter** tanpa input kanggo nginstal kabeh.
 
-For each selected repository the script:
-1. Copies it to `<install_dir>/` (default `/usr/local/gladiola`)
-2. Sets `chmod 755` on all `.sh` files
-3. Runs `make install` if a `Makefile` is present (output shown only on failure)
+Kanggo saben repositori sing dipilih, skrip bakal:
+1. Nyalin menyang `<install_dir>/` (gawan `/usr/local/gladiola`)
+2. Nyetel `chmod 755` kanggo kabeh file `.sh`
+3. Mlakuake `make install` yen ana `Makefile` (output mung dituduhake nalika gagal)
 
 ### Unmount yen wis rampung
 

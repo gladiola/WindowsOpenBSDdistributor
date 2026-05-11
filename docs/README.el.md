@@ -25,13 +25,13 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 | **Συγκεκριμένα repos** | `.\windows\download_repos.ps1 -DriveLetter E -Repos "OBJC-codespaces","OpenBSDHomemadeBlockScripts"` |
 | **Όλα τα repos** | `.\windows\download_repos.ps1 -DriveLetter E -All` |
 
-| With a GitHub token (raises rate limit) | add `-Token ghp_yourToken` to any command above |
+| Με token GitHub (υψηλότερο όριο αιτήσεων) | πρόσθεσε `-Token ghp_yourToken` σε οποιαδήποτε εντολή παραπάνω |
 
-**Interactive mode** fetches all public gladiola repos from the GitHub API and opens an `Out-GridView` window listing repo names. Hold **Ctrl** or **Shift** to select multiple repos, then click **OK**.
+**Διαδραστική λειτουργία** ανακτά όλα τα δημόσια repos του gladiola από το GitHub API και ανοίγει παράθυρο `Out-GridView` με τα ονόματα των repo. Κράτησε πατημένο **Ctrl** ή **Shift** για πολλαπλή επιλογή και μετά πάτησε **OK**.
 
-The script clones each chosen repo into `<DriveLetter>:\\gladiola_repos\\`. If a repo was already cloned previously it fetches and resets to the latest `HEAD` instead.
+Το script κάνει clone κάθε επιλεγμένου repo στο `<DriveLetter>:\\gladiola_repos\\`. Αν ένα repo είχε ήδη κλωνοποιηθεί, κάνει fetch και επαναφέρει στο πιο πρόσφατο `HEAD`.
 
-Safely eject the USB drive when the script reports success.
+Κάνε ασφαλή εξαγωγή του USB όταν το script αναφέρει επιτυχία.
 
 ---
 
@@ -45,10 +45,10 @@ Safely eject the USB drive when the script reports success.
 ### Κάντε mount τη μονάδα USB
 
 ```sh
-# Find the device name (look for the USB drive, often sd1 or sd2)
+# Βρες το όνομα της συσκευής (αναζήτησε το USB, συνήθως sd1 ή sd2)
 sysctl hw.disknames
 
-# Mount it (replace sd1i with your actual partition)
+# Κάνε mount (αντικατάστησε το sd1i με το πραγματικό partition σου)
 doas mount -t msdos /dev/sd1i /mnt/usb
 ```
 
@@ -61,12 +61,12 @@ doas mount -t msdos /dev/sd1i /mnt/usb
 | **All repos** – no menu | `doas sh openbsd/install_repos.sh -a` |
 | Custom source / destination | add `-s /mnt/usbkey -d /home/myuser/gladiola` |
 
-**Interactive mode** lists every repo found in `gladiola_repos/` on the USB drive with a number, then prompts you to enter the numbers you want (e.g. `1 3 5`). Press **Enter** with no input to install everything.
+**Διαδραστική λειτουργία** εμφανίζει κάθε repo που βρίσκεται στο `gladiola_repos/` του USB με αριθμό και σε προτρέπει να εισαγάγεις τους αριθμούς που θέλεις (π.χ. `1 3 5`). Πάτησε **Enter** χωρίς εισαγωγή για εγκατάσταση όλων.
 
-For each selected repository the script:
-1. Copies it to `<install_dir>/` (default `/usr/local/gladiola`)
-2. Sets `chmod 755` on all `.sh` files
-3. Runs `make install` if a `Makefile` is present (output shown only on failure)
+Για κάθε επιλεγμένο repository το script:
+1. Το αντιγράφει στο `<install_dir>/` (προεπιλογή `/usr/local/gladiola`)
+2. Ορίζει `chmod 755` σε όλα τα αρχεία `.sh`
+3. Εκτελεί `make install` αν υπάρχει `Makefile` (έξοδος εμφανίζεται μόνο σε αποτυχία)
 
 ### Κάντε unmount όταν τελειώσετε
 

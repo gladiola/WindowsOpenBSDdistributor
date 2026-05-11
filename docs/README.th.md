@@ -25,13 +25,13 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 | **ระบุรีโพเฉพาะ** | `.\windows\download_repos.ps1 -DriveLetter E -Repos "OBJC-codespaces","OpenBSDHomemadeBlockScripts"` |
 | **ทุกรีโพ** | `.\windows\download_repos.ps1 -DriveLetter E -All` |
 
-| With a GitHub token (raises rate limit) | add `-Token ghp_yourToken` to any command above |
+| ใช้ GitHub token (เพิ่มขีดจำกัดการเรียกใช้งาน) | เพิ่ม `-Token ghp_yourToken` ในคำสั่งใดก็ได้ด้านบน |
 
-**Interactive mode** fetches all public gladiola repos from the GitHub API and opens an `Out-GridView` window listing repo names. Hold **Ctrl** or **Shift** to select multiple repos, then click **OK**.
+**โหมดโต้ตอบ** จะดึงรีโปสาธารณะของ gladiola ทั้งหมดจาก GitHub API และเปิดหน้าต่าง `Out-GridView` ที่แสดงรายชื่อรีโป กด **Ctrl** หรือ **Shift** เพื่อเลือกหลายรายการ แล้วคลิก **OK**.
 
-The script clones each chosen repo into `<DriveLetter>:\\gladiola_repos\\`. If a repo was already cloned previously it fetches and resets to the latest `HEAD` instead.
+สคริปต์จะโคลนรีโปที่เลือกแต่ละรายการไปยัง `<DriveLetter>:\\gladiola_repos\\` หากรีโปถูกโคลนไว้แล้ว สคริปต์จะ fetch และรีเซ็ตไปยัง `HEAD` ล่าสุดแทน.
 
-Safely eject the USB drive when the script reports success.
+ถอด USB อย่างปลอดภัยเมื่อสคริปต์รายงานว่าสำเร็จ.
 
 ---
 
@@ -45,10 +45,10 @@ Safely eject the USB drive when the script reports success.
 ### เมานต์ USB
 
 ```sh
-# Find the device name (look for the USB drive, often sd1 or sd2)
+# ค้นหาชื่ออุปกรณ์ (มองหา USB ซึ่งมักเป็น sd1 หรือ sd2)
 sysctl hw.disknames
 
-# Mount it (replace sd1i with your actual partition)
+# เมานต์อุปกรณ์ (แทนที่ sd1i ด้วยพาร์ทิชันจริงของคุณ)
 doas mount -t msdos /dev/sd1i /mnt/usb
 ```
 
@@ -61,12 +61,12 @@ doas mount -t msdos /dev/sd1i /mnt/usb
 | **All repos** – no menu | `doas sh openbsd/install_repos.sh -a` |
 | Custom source / destination | add `-s /mnt/usbkey -d /home/myuser/gladiola` |
 
-**Interactive mode** lists every repo found in `gladiola_repos/` on the USB drive with a number, then prompts you to enter the numbers you want (e.g. `1 3 5`). Press **Enter** with no input to install everything.
+**โหมดโต้ตอบ** จะแสดงรีโปทุกตัวที่พบใน `gladiola_repos/` บน USB พร้อมหมายเลข แล้วให้คุณกรอกหมายเลขที่ต้องการ (เช่น `1 3 5`) กด **Enter** โดยไม่กรอกอะไรเพื่อให้ติดตั้งทั้งหมด.
 
-For each selected repository the script:
-1. Copies it to `<install_dir>/` (default `/usr/local/gladiola`)
-2. Sets `chmod 755` on all `.sh` files
-3. Runs `make install` if a `Makefile` is present (output shown only on failure)
+สำหรับแต่ละรีโปที่เลือก สคริปต์จะ:
+1. คัดลอกไปยัง `<install_dir>/` (ค่าเริ่มต้น `/usr/local/gladiola`)
+2. ตั้งค่า `chmod 755` ให้ไฟล์ `.sh` ทั้งหมด
+3. รัน `make install` หากมี `Makefile` (จะแสดงผลเฉพาะเมื่อเกิดข้อผิดพลาด)
 
 ### ยกเลิกเมานต์เมื่อเสร็จ
 

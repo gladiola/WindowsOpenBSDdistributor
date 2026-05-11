@@ -25,13 +25,13 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 | **Partikular na repos** | `.\windows\download_repos.ps1 -DriveLetter E -Repos "OBJC-codespaces","OpenBSDHomemadeBlockScripts"` |
 | **Lahat ng repos** | `.\windows\download_repos.ps1 -DriveLetter E -All` |
 
-| With a GitHub token (raises rate limit) | add `-Token ghp_yourToken` to any command above |
+| Kapag may GitHub token (mas mataas ang rate limit) | idagdag ang `-Token ghp_yourToken` sa alinmang command sa itaas |
 
-**Interactive mode** fetches all public gladiola repos from the GitHub API and opens an `Out-GridView` window listing repo names. Hold **Ctrl** or **Shift** to select multiple repos, then click **OK**.
+**Interactive mode** kumukuha ng lahat ng pampublikong gladiola repos mula sa GitHub API at nagbubukas ng `Out-GridView` window na may listahan ng repo names. Pindutin ang **Ctrl** o **Shift** para pumili ng marami, tapos i-click ang **OK**.
 
-The script clones each chosen repo into `<DriveLetter>:\\gladiola_repos\\`. If a repo was already cloned previously it fetches and resets to the latest `HEAD` instead.
+Iki-clone ng script ang bawat napiling repo sa `<DriveLetter>:\\gladiola_repos\\`. Kung na-clone na dati ang repo, magfe-fetch ito at magre-reset sa pinakabagong `HEAD`.
 
-Safely eject the USB drive when the script reports success.
+Ligtas na i-eject ang USB drive kapag nag-report ng success ang script.
 
 ---
 
@@ -45,10 +45,10 @@ Safely eject the USB drive when the script reports success.
 ### I-mount ang USB
 
 ```sh
-# Find the device name (look for the USB drive, often sd1 or sd2)
+# Hanapin ang device name (hanapin ang USB drive, kadalasang sd1 o sd2)
 sysctl hw.disknames
 
-# Mount it (replace sd1i with your actual partition)
+# I-mount ito (palitan ang sd1i ng aktwal mong partition)
 doas mount -t msdos /dev/sd1i /mnt/usb
 ```
 
@@ -61,12 +61,12 @@ doas mount -t msdos /dev/sd1i /mnt/usb
 | **All repos** – no menu | `doas sh openbsd/install_repos.sh -a` |
 | Custom source / destination | add `-s /mnt/usbkey -d /home/myuser/gladiola` |
 
-**Interactive mode** lists every repo found in `gladiola_repos/` on the USB drive with a number, then prompts you to enter the numbers you want (e.g. `1 3 5`). Press **Enter** with no input to install everything.
+**Interactive mode** inililista ang bawat repo na makita sa `gladiola_repos/` sa USB drive na may numero, at hihilingin sa iyong ilagay ang mga numerong gusto mo (hal. `1 3 5`). Pindutin ang **Enter** nang walang input para i-install lahat.
 
-For each selected repository the script:
-1. Copies it to `<install_dir>/` (default `/usr/local/gladiola`)
-2. Sets `chmod 755` on all `.sh` files
-3. Runs `make install` if a `Makefile` is present (output shown only on failure)
+Para sa bawat napiling repository, ang script ay:
+1. Kinokopya ito sa `<install_dir>/` (default `/usr/local/gladiola`)
+2. Itinatakda ang `chmod 755` sa lahat ng `.sh` files
+3. Pinapatakbo ang `make install` kung may `Makefile` (output lang kapag may failure)
 
 ### I-unmount kapag tapos na
 

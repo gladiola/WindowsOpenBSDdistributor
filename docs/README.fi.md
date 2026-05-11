@@ -25,13 +25,13 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 | **Tietyt repot** | `.\windows\download_repos.ps1 -DriveLetter E -Repos "OBJC-codespaces","OpenBSDHomemadeBlockScripts"` |
 | **Kaikki repot** | `.\windows\download_repos.ps1 -DriveLetter E -All` |
 
-| With a GitHub token (raises rate limit) | add `-Token ghp_yourToken` to any command above |
+| GitHub-tokenilla (suurempi pyyntöraja) | lisää `-Token ghp_yourToken` mihin tahansa yllä olevaan komentoon |
 
-**Interactive mode** fetches all public gladiola repos from the GitHub API and opens an `Out-GridView` window listing repo names. Hold **Ctrl** or **Shift** to select multiple repos, then click **OK**.
+**Interaktiivinen tila** hakee kaikki julkiset gladiola-repot GitHub API:sta ja avaa `Out-GridView`-ikkunan, jossa näkyvät repositorioiden nimet. Pidä **Ctrl** tai **Shift** pohjassa valitaksesi useita repoja ja napsauta sitten **OK**.
 
-The script clones each chosen repo into `<DriveLetter>:\\gladiola_repos\\`. If a repo was already cloned previously it fetches and resets to the latest `HEAD` instead.
+Skripti kloonaa jokaisen valitun repon hakemistoon `<DriveLetter>:\\gladiola_repos\\`. Jos repo on jo aiemmin kloonattu, se hakee muutokset ja palauttaa uusimpaan `HEAD`-tilaan.
 
-Safely eject the USB drive when the script reports success.
+Irrota USB-asema turvallisesti, kun skripti ilmoittaa onnistumisesta.
 
 ---
 
@@ -45,10 +45,10 @@ Safely eject the USB drive when the script reports success.
 ### Liitä USB-asema
 
 ```sh
-# Find the device name (look for the USB drive, often sd1 or sd2)
+# Etsi laitteen nimi (etsi USB-asema, usein sd1 tai sd2)
 sysctl hw.disknames
 
-# Mount it (replace sd1i with your actual partition)
+# Liitä se (korvaa sd1i omalla osiollasi)
 doas mount -t msdos /dev/sd1i /mnt/usb
 ```
 
@@ -61,12 +61,12 @@ doas mount -t msdos /dev/sd1i /mnt/usb
 | **All repos** – no menu | `doas sh openbsd/install_repos.sh -a` |
 | Custom source / destination | add `-s /mnt/usbkey -d /home/myuser/gladiola` |
 
-**Interactive mode** lists every repo found in `gladiola_repos/` on the USB drive with a number, then prompts you to enter the numbers you want (e.g. `1 3 5`). Press **Enter** with no input to install everything.
+**Interaktiivinen tila** listaa jokaisen USB-aseman `gladiola_repos/`-hakemistosta löytyvän repon numerolla ja pyytää syöttämään haluamasi numerot (esim. `1 3 5`). Paina **Enter** ilman syötettä, jos haluat asentaa kaiken.
 
-For each selected repository the script:
-1. Copies it to `<install_dir>/` (default `/usr/local/gladiola`)
-2. Sets `chmod 755` on all `.sh` files
-3. Runs `make install` if a `Makefile` is present (output shown only on failure)
+Jokaiselle valitulle repositoriolle skripti:
+1. Kopioi sen hakemistoon `<install_dir>/` (oletus `/usr/local/gladiola`)
+2. Asettaa `chmod 755` kaikille `.sh`-tiedostoille
+3. Suorittaa `make install`, jos `Makefile` on olemassa (tuloste näytetään vain virheessä)
 
 ### Irrota USB-asema
 

@@ -25,13 +25,13 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 | **Valgte repos** | `.\windows\download_repos.ps1 -DriveLetter E -Repos "OBJC-codespaces","OpenBSDHomemadeBlockScripts"` |
 | **Alle repos** | `.\windows\download_repos.ps1 -DriveLetter E -All` |
 
-| With a GitHub token (raises rate limit) | add `-Token ghp_yourToken` to any command above |
+| Med en GitHub-token (høyere grense) | legg til `-Token ghp_dinToken` i en av kommandoene over |
 
-**Interactive mode** fetches all public gladiola repos from the GitHub API and opens an `Out-GridView` window listing repo names. Hold **Ctrl** or **Shift** to select multiple repos, then click **OK**.
+**Interaktiv modus** henter alle offentlige gladiola-repositorier fra GitHub API og åpner et `Out-GridView`-vindu som viser repo-navn. Hold **Ctrl** eller **Shift** for å velge flere repos, og klikk deretter **OK**.
 
-The script clones each chosen repo into `<DriveLetter>:\\gladiola_repos\\`. If a repo was already cloned previously it fetches and resets to the latest `HEAD` instead.
+Skriptet kloner hvert valgt repo til `<DriveLetter>:\\gladiola_repos\\`. Hvis et repo allerede var klonet tidligere, henter det og nullstiller til nyeste `HEAD` i stedet.
 
-Safely eject the USB drive when the script reports success.
+Løs ut USB-enheten på en trygg måte når skriptet melder suksess.
 
 ---
 
@@ -45,10 +45,10 @@ Safely eject the USB drive when the script reports success.
 ### Monter USB-enheten
 
 ```sh
-# Find the device name (look for the USB drive, often sd1 or sd2)
+# Finn enhetsnavnet (se etter USB-enheten, ofte sd1 eller sd2)
 sysctl hw.disknames
 
-# Mount it (replace sd1i with your actual partition)
+# Monter den (erstatt sd1i med din faktiske partisjon)
 doas mount -t msdos /dev/sd1i /mnt/usb
 ```
 
@@ -61,12 +61,12 @@ doas mount -t msdos /dev/sd1i /mnt/usb
 | **All repos** – no menu | `doas sh openbsd/install_repos.sh -a` |
 | Custom source / destination | add `-s /mnt/usbkey -d /home/myuser/gladiola` |
 
-**Interactive mode** lists every repo found in `gladiola_repos/` on the USB drive with a number, then prompts you to enter the numbers you want (e.g. `1 3 5`). Press **Enter** with no input to install everything.
+**Interaktiv modus** viser hvert repo funnet i `gladiola_repos/` på USB-enheten med et nummer, og ber deg skrive inn numrene du vil ha (f.eks. `1 3 5`). Trykk **Enter** uten input for å installere alt.
 
-For each selected repository the script:
-1. Copies it to `<install_dir>/` (default `/usr/local/gladiola`)
-2. Sets `chmod 755` on all `.sh` files
-3. Runs `make install` if a `Makefile` is present (output shown only on failure)
+For hvert valgt repository gjør skriptet:
+1. Kopierer det til `<install_dir>/` (standard `/usr/local/gladiola`)
+2. Setter `chmod 755` på alle `.sh`-filer
+3. Kjører `make install` hvis en `Makefile` finnes (utdata vises bare ved feil)
 
 ### Avmonter når du er ferdig
 

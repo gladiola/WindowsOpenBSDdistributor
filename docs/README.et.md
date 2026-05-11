@@ -25,13 +25,13 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 | **Kindlad repod** | `.\windows\download_repos.ps1 -DriveLetter E -Repos "OBJC-codespaces","OpenBSDHomemadeBlockScripts"` |
 | **Kõik repod** | `.\windows\download_repos.ps1 -DriveLetter E -All` |
 
-| With a GitHub token (raises rate limit) | add `-Token ghp_yourToken` to any command above |
+| GitHubi tokeniga (suurem päringulimiit) | lisa `-Token ghp_yourToken` mõnele ülaltoodud käsule |
 
-**Interactive mode** fetches all public gladiola repos from the GitHub API and opens an `Out-GridView` window listing repo names. Hold **Ctrl** or **Shift** to select multiple repos, then click **OK**.
+**Interaktiivne režiim** toob GitHub API-st kõik avalikud gladiola repositooriumid ja avab `Out-GridView` akna, kus on repo nimed. Mitme repo valimiseks hoia all **Ctrl** või **Shift**, seejärel klõpsa **OK**.
 
-The script clones each chosen repo into `<DriveLetter>:\\gladiola_repos\\`. If a repo was already cloned previously it fetches and resets to the latest `HEAD` instead.
+Skript kloonib iga valitud repo kausta `<DriveLetter>:\\gladiola_repos\\`. Kui repo oli juba varem kloonitud, siis tehakse fetch ja lähtestatakse uusimale `HEAD`-ile.
 
-Safely eject the USB drive when the script reports success.
+Eemalda USB-draiv turvaliselt, kui skript annab edust teada.
 
 ---
 
@@ -45,10 +45,10 @@ Safely eject the USB drive when the script reports success.
 ### Ühenda USB
 
 ```sh
-# Find the device name (look for the USB drive, often sd1 or sd2)
+# Leia seadme nimi (otsi USB-draivi, sageli sd1 või sd2)
 sysctl hw.disknames
 
-# Mount it (replace sd1i with your actual partition)
+# Ühenda see (asenda sd1i oma tegeliku partitsiooniga)
 doas mount -t msdos /dev/sd1i /mnt/usb
 ```
 
@@ -61,12 +61,12 @@ doas mount -t msdos /dev/sd1i /mnt/usb
 | **All repos** – no menu | `doas sh openbsd/install_repos.sh -a` |
 | Custom source / destination | add `-s /mnt/usbkey -d /home/myuser/gladiola` |
 
-**Interactive mode** lists every repo found in `gladiola_repos/` on the USB drive with a number, then prompts you to enter the numbers you want (e.g. `1 3 5`). Press **Enter** with no input to install everything.
+**Interaktiivne režiim** loetleb USB-draivi `gladiola_repos/` kaustast leitud repositooriumid numbritega ja palub sisestada soovitud numbrid (nt `1 3 5`). Kui vajutad **Enter** ilma sisendita, paigaldatakse kõik.
 
-For each selected repository the script:
-1. Copies it to `<install_dir>/` (default `/usr/local/gladiola`)
-2. Sets `chmod 755` on all `.sh` files
-3. Runs `make install` if a `Makefile` is present (output shown only on failure)
+Iga valitud repositooriumi jaoks skript:
+1. Kopeerib selle kausta `<install_dir>/` (vaikimisi `/usr/local/gladiola`)
+2. Määrab kõigile `.sh` failidele õiguse `chmod 755`
+3. Käivitab `make install`, kui `Makefile` on olemas (väljund kuvatakse ainult vea korral)
 
 ### Eemalda USB
 
